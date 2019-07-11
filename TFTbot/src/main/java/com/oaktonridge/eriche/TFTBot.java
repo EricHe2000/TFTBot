@@ -436,7 +436,7 @@ public class TFTBot {
 
 	private void playAgain() throws IOException, AWTException, InterruptedException {
 		String folder = "src\\main\\resources\\Queue\\";
-		String fileName = "PlayAgainCheck" + "." + FORMAT;
+		String fileName = folder+"PlayAgainCheck" + "." + FORMAT;
 
 		Rectangle captureRect = new Rectangle(800, 849, screenSize.width / 15, screenSize.height / 32);// capture
 																										// playAgain
