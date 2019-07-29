@@ -5,7 +5,7 @@ public class Main {
 
 		TFTBot t = new TFTBot();
 		try {
-			t.run();
+			t.run("wildnoble.txt");
 		} catch (Exception e) {
 			System.out.println("System Aborted: " + e.getMessage());
 			e.printStackTrace();

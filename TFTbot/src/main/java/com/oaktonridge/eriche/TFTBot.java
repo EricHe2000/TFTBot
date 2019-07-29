@@ -22,9 +22,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class TFTBot {
 	private JFrame frame = new JFrame("Simple GUI");
 	public final static String FORMAT = "jpg";
@@ -36,18 +40,43 @@ public class TFTBot {
 	private HashMap<String, Integer> champCount = new HashMap<>();
 	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy.MM.dd HH.mm.ss");
+	private ScheduledExecutorService service;
 
-	public void run() throws Exception {
+	@PostConstruct
+	public void init() throws AWTException {
+		System.out.println("reached init");
 		robot = new Robot();
-		comp = teamComp();
-		createWindow();
-		ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+	}
+
+	public void stop() {
+		if (service != null) {
+			service.shutdown();
+			service = null;
+			System.out.println("Program has been stopped");
+		} else {
+			System.out.println("Program is not started");
+		}
+	}
+
+	public void run(String compList) throws AWTException, FileNotFoundException {
+		if (service != null) {
+			return;
+		}
+		comp = teamComp(compList);
+		if (comp.size() == 0) {
+			return;
+		}
+		robot = new Robot();
+		// createWindow();
+		System.out.println("Scripted has started");
+		service = Executors.newSingleThreadScheduledExecutor();
 		service.scheduleAtFixedRate(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					capture();
 					reQueue();
+					saveImage();
 					robot.mouseRelease(InputEvent.BUTTON1_MASK);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -161,19 +190,25 @@ public class TFTBot {
 		robot.delay(100);
 	}
 
-	private List<String> teamComp() throws FileNotFoundException {
+	private List<String> teamComp(String compList) {
 		List<String> comp = new ArrayList<>();
-		Scanner sc = new Scanner(System.in);
-		System.out.println("Enter Team File: ");
-		String compList = sc.nextLine();
+		// Scanner sc = new Scanner(System.in);
+		// System.out.println("Enter Team File: ");
+		// String compList = sc.nextLine();
 		File file = new File("src\\main\\resources\\TeamComps\\" + compList);
-		sc.close();
-		sc = new Scanner(file);
-		while (sc.hasNextLine()) {
-			comp.add(sc.nextLine());
+		// sc.close();
+		Scanner sc;
+		try {
+			sc = new Scanner(file);
+			while (sc.hasNextLine()) {
+				comp.add(sc.nextLine());
+			}
+			sc.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found" + e.getMessage());
 		}
-		sc.close();
 		return comp;
+
 	}
 
 	public void capture() throws IOException, AWTException, InterruptedException {
@@ -206,7 +241,7 @@ public class TFTBot {
 				System.err.println(ex);
 			}
 		}
-		captureStage(956, 27, "src\\main\\resources\\Games\\" + "stage.jpg");
+		captureStage(956, 27, folder + "stage.jpg");
 
 		File folderChamps = new File("src\\main\\resources\\Champs");
 		File[] listOfFiles = folderChamps.listFiles();
@@ -228,7 +263,9 @@ public class TFTBot {
 						double p1 = getDifferencePercent(stage1, stage3);
 						double p2 = getDifferencePercent(stage1, stage4);
 						if (p < 6 && sellFirst) {
+							System.out.println("true");
 							sellFirst();
+							robot.delay(2000);
 							item1();
 							item1();
 							item2();
@@ -236,17 +273,19 @@ public class TFTBot {
 							item4();
 							sellFirst = false;
 						} else if (p1 < 6 && sellSecond) {
-							// sellSecond();
+
 							item1();
 							item1();
 							item2();
 							item3();
 							item4();
+							levelUp();
+							levelUp();
+							levelUp();
+							levelUp();
+
 							sellSecond = false;
-							levelUp();
-							levelUp();
-							levelUp();
-							levelUp();
+							surrender();
 						} else if (p2 < 6 && sellThird) {
 							item1();
 							item1();
@@ -344,7 +383,7 @@ public class TFTBot {
 
 	private void captureGold(int x, int y, String fileName) throws AWTException, IOException {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		Rectangle captureRect = new Rectangle(878, 880, screenSize.width / 130, screenSize.height / 32);
+		Rectangle captureRect = new Rectangle(878, 880, screenSize.width / 160, screenSize.height / 32);
 		BufferedImage screenFullImage = robot.createScreenCapture(captureRect);
 		ImageIO.write(screenFullImage, FORMAT, new File(fileName));
 	}
@@ -416,6 +455,15 @@ public class TFTBot {
 		}
 	}
 
+	private void saveImage() throws IOException {
+		String folder = "src\\main\\resources\\public\\images\\";
+		String fileName = "upload." + FORMAT;
+		Rectangle captureRect = new Rectangle(0, 0, screenSize.width, screenSize.height);
+		BufferedImage screenFullImage = robot.createScreenCapture(captureRect);
+
+		ImageIO.write(screenFullImage, FORMAT, new File(folder + fileName));
+	}
+
 	private void takeFullShot() throws IOException {
 		String folder = "src\\main\\resources\\Games\\";
 		LocalDateTime now = LocalDateTime.now();
@@ -426,17 +474,17 @@ public class TFTBot {
 
 		ImageIO.write(screenFullImage, FORMAT, new File(folder + fileName));
 
-		captureRect = new Rectangle(0, 0, screenSize.width, screenSize.height);
-		screenFullImage = robot.createScreenCapture(captureRect);
+		// captureRect = new Rectangle(0, 0, screenSize.width, screenSize.height);
+		// screenFullImage = robot.createScreenCapture(captureRect);
 
-		fileName = dtf.format(now) + "." + FORMAT;
-		ImageIO.write(screenFullImage, FORMAT, new File(folder + fileName));
+		// fileName = dtf.format(now) + "." + FORMAT;
+		// ImageIO.write(screenFullImage, FORMAT, new File(folder + fileName));
 		robot.delay(2000);
 	}
 
 	private void playAgain() throws IOException, AWTException, InterruptedException {
 		String folder = "src\\main\\resources\\Queue\\";
-		String fileName = folder+"PlayAgainCheck" + "." + FORMAT;
+		String fileName = folder + "PlayAgainCheck" + "." + FORMAT;
 
 		Rectangle captureRect = new Rectangle(800, 849, screenSize.width / 15, screenSize.height / 32);// capture
 																										// playAgain
@@ -445,19 +493,23 @@ public class TFTBot {
 
 		BufferedImage playAgain = ImageIO.read(new File(folder + "PlayAgain.jpg"));
 		BufferedImage findMatch = ImageIO.read(new File(folder + "FindMatch.jpg"));
-		BufferedImage playAgainCheck = ImageIO.read(new File("PlayAgainCheck.jpg"));
+		BufferedImage findMatchCheck = ImageIO.read(new File(folder + "findMatchCheck.jpg"));
+		BufferedImage playAgainCheck = ImageIO.read(new File(folder + "PlayAgainCheck.jpg"));
 
 		robot.delay(1000);
 
-		double p = getDifferencePercent(playAgain, playAgainCheck);
+		double p = getDifferencePercent(playAgainCheck, playAgain);
 		double p1 = getDifferencePercent(playAgainCheck, findMatch);
-
-		if (p < 6 || p1 < 6) {
+		double p2 = getDifferencePercent(playAgainCheck, findMatchCheck);
+		if (p < 6) {
 			takeFullShot();
 			click(865, 860); // play again && findMatch
 			robot.delay(5000);
 		}
-
+		if (p1 < 6 || p2 < 6) {
+			click(865, 860); // play again && findMatch
+			robot.delay(5000);
+		}
 	}
 
 	private void acceptQueue() throws IOException, AWTException, InterruptedException {
@@ -474,13 +526,69 @@ public class TFTBot {
 
 		if (p < 6) {
 			click(965, 728);
+			sellFirst = true;
+			sellSecond = true;
+			sellThird = true;
 		}
 		robot.delay(1000);
 	}
 
+	private void skipStats() throws IOException, AWTException, InterruptedException {
+		String fileName = "skipStatsCheck" + "." + FORMAT;
+		String folder = "src\\main\\resources\\Queue\\";
+		Rectangle captureRect = new Rectangle(741, 524, screenSize.width / 10, screenSize.height / 40);
+		BufferedImage screenFullImage = robot.createScreenCapture(captureRect);
+		ImageIO.write(screenFullImage, FORMAT, new File(folder + fileName));
+
+		BufferedImage skipStats = ImageIO.read(new File(folder + "skipStats.jpg"));
+		BufferedImage skipStatsCheck = ImageIO.read(new File(folder + "skipStatsCheck.jpg"));
+		BufferedImage skipStats1 = ImageIO.read(new File(folder + "skipStats1.jpg"));
+		double p = getDifferencePercent(skipStats, skipStatsCheck);
+		double p1 = getDifferencePercent(skipStats1, skipStatsCheck);
+		if (p < 6 || p1 < 6) {
+			click(843, 533);
+		}
+		robot.delay(1000);
+	}
+
+	private void play() throws IOException, AWTException, InterruptedException {
+		String fileName = "playCheck" + "." + FORMAT;
+		String folder = "src\\main\\resources\\Queue\\";
+		Rectangle captureRect = new Rectangle(389, 553, screenSize.width / 20, screenSize.height / 40);
+		BufferedImage screenFullImage = robot.createScreenCapture(captureRect);
+		ImageIO.write(screenFullImage, FORMAT, new File(folder + fileName));
+
+		BufferedImage play = ImageIO.read(new File(folder + "play.jpg"));
+		BufferedImage playCheck = ImageIO.read(new File(folder + "playCheck.jpg"));
+
+		double p = getDifferencePercent(play, playCheck);
+
+		if (p < 6) {
+			click(452, 562);
+		}
+		robot.delay(1000);
+	}
+
+	private void surrender() throws AWTException, InterruptedException {
+		robot.delay(1000);
+		robot.keyPress(KeyEvent.VK_ENTER);
+		robot.keyPress(KeyEvent.VK_SLASH);
+		robot.keyPress(KeyEvent.VK_F);
+		robot.delay(1000);
+		robot.keyPress(KeyEvent.VK_F);
+		robot.keyPress(KeyEvent.VK_ENTER);
+		robot.delay(1000);
+		click(859, 632);
+		click(859, 632);
+		click(859, 632);
+	}
+
 	private void reQueue() throws IOException, AWTException, InterruptedException {
 		exit();
+		skipStats();
+		play();
 		playAgain();
 		acceptQueue();
+
 	}
 }
