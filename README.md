@@ -1,5 +1,5 @@
 # TFTBot
-A Team Fight Tactics bot script with customizable team comps and 
+A Team Fight Tactics bot script with customizable team comps and gold controls.
 
 ## Getting Started
 
