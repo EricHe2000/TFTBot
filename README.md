@@ -7,7 +7,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Installing
 
-A step by step series of examples that tell you how to get the bot running
+How to get the bot running  
+Locate folder TFTbot and run command below in CMD
 
 If running as source code
 
@@ -24,9 +25,9 @@ java -jar target/tftbot-0.0.1-SNAPSHOT.jar
 ## Changing Team Comps
 Under resources/TeamComps create new text file for team comp
 
-## Spring Boot controls
-http://localhost:8081/start?name=[Insert your team comp file name]
-http://localhost:8081/stop
+## Spring Boot Controls
+http://localhost:8081/start?name= [Insert your team comp file name]  
+http://localhost:8081/stop  
 http://localhost:8081/monitor
 
 ## Built With
