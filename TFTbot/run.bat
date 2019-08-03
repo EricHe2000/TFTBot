@@ -1,0 +1,1 @@
+java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8787,suspend=n -jar target/tftbot-0.0.1-SNAPSHOT.jar
