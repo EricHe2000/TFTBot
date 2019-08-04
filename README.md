@@ -1,5 +1,5 @@
 # TFTBot
-A Team Fight Tactics bot script with customizable team comps, gold controls, and re-queue abilities. The bot includes the option of mission completion or surrender for tokens, with the ability to start a match and accept queue by itself. The bot is programmed to buy the selected champions of choosing and combine the items selected by the user. The placement of champions can also be pre-set based on choosen team comps. 
+A Team Fight Tactics bot script with customizable team comps, gold controls, and re-queue abilities. The bot includes the option of mission completion or surrendering for tokens, and has the ability to start a match and accept queue by itself. The bot is programmed to buy the selected champions of choosing and combine the items selected by the user. The placement of champions can also be pre-set based on choosen team comps. 
 
 ## Getting Started
 
